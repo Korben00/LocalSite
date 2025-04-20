@@ -2,16 +2,16 @@
 import { useState } from "react";
 import { RiSparkling2Fill } from "react-icons/ri";
 import { GrSend } from "react-icons/gr";
-import classNames from "classnames";
+// import classNames supprimé car non utilisé après retrait de la popup login
 import { toast } from "react-toastify";
 import { useLocalStorage } from "react-use";
 import { MdPreview } from "react-icons/md";
 
-import Login from "../login/login";
+// import Login supprimé car non utilisé après retrait des limitations
 import { defaultHTML } from "./../../../utils/consts";
 import SuccessSound from "./../../assets/success.mp3";
 import Settings from "../settings/settings";
-import ProModal from "../pro-modal/pro-modal";
+// Import ProModal supprimé car non utilisé en mode local
 // import SpeechPrompt from "../speech-prompt/speech-prompt";
 
 function AskAI({
@@ -31,14 +31,14 @@ function AskAI({
   setView: React.Dispatch<React.SetStateAction<"editor" | "preview">>;
   setisAiWorking: React.Dispatch<React.SetStateAction<boolean>>;
 }) {
-  const [open, setOpen] = useState(false);
+  // variables liées au login supprimées car nous utilisons Ollama en local
   const [prompt, setPrompt] = useState("");
   const [hasAsked, setHasAsked] = useState(false);
   const [previousPrompt, setPreviousPrompt] = useState("");
   const [provider, setProvider] = useLocalStorage("provider", "auto");
   const [openProvider, setOpenProvider] = useState(false);
   const [providerError, setProviderError] = useState("");
-  const [openProModal, setOpenProModal] = useState(false);
+  // Variables de modal supprimées car non utilisées en mode local
 
   const audio = new Audio(SuccessSound);
   audio.volume = 0.5;
@@ -67,13 +67,10 @@ function AskAI({
       if (request && request.body) {
         if (!request.ok) {
           const res = await request.json();
-          if (res.openLogin) {
-            setOpen(true);
-          } else if (res.openSelectProvider) {
+          if (res.openSelectProvider) {
             setOpenProvider(true);
             setProviderError(res.message);
-          } else if (res.openProModal) {
-            setOpenProModal(true);
+          // Suppression de la vérification pour le mode pro/login
           } else {
             toast.error(res.message);
           }
@@ -136,9 +133,7 @@ function AskAI({
     } catch (error: any) {
       setisAiWorking(false);
       toast.error(error.message);
-      if (error.openLogin) {
-        setOpen(true);
-      }
+      // Login popup supprimé car nous utilisons Ollama en local
     }
   };
 
@@ -192,34 +187,8 @@ function AskAI({
           </button>
         </div>
       </div>
-      <div
-        className={classNames(
-          "h-screen w-screen bg-black/20 fixed left-0 top-0 z-10",
-          {
-            "opacity-0 pointer-events-none": !open,
-          }
-        )}
-        onClick={() => setOpen(false)}
-      ></div>
-      <div
-        className={classNames(
-          "absolute top-0 -translate-y-[calc(100%+8px)] right-0 z-10 w-80 bg-white border border-gray-200 rounded-lg shadow-lg transition-all duration-75 overflow-hidden",
-          {
-            "opacity-0 pointer-events-none": !open,
-          }
-        )}
-      >
-        <Login html={html}>
-          <p className="text-gray-500 text-sm mb-3">
-            You reached the limit of free AI usage. Please login to continue.
-          </p>
-        </Login>
-      </div>
-      <ProModal
-        html={html}
-        open={openProModal}
-        onClose={() => setOpenProModal(false)}
-      />
+      {/* Login popup supprimé car nous utilisons Ollama en local */}
+      {/* Modal de login supprimée pour le mode Ollama 100% local */}
     </div>
   );
 }

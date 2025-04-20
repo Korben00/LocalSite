@@ -10,17 +10,9 @@ import Login from "../login/login";
 import { Auth } from "./../../../utils/types";
 import LoadButton from "../load-button/load-button";
 
-const MsgToast = ({ url }: { url: string }) => (
-  <div className="w-full flex items-center justify-center gap-3">
-    Your space is live!
-    <button
-      className="bg-black text-sm block text-white rounded-md px-3 py-1.5 hover:bg-gray-900 cursor-pointer"
-      onClick={() => {
-        window.open(url, "_blank");
-      }}
-    >
-      See Space
-    </button>
+const LocalToast = () => (
+  <div className="flex items-center justify-center gap-2">
+    <span>Site sauvegardé localement!</span>
   </div>
 );
 
@@ -40,46 +32,37 @@ function DeployButton({
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [path, setPath] = useState<string | undefined>(undefined);
-
-  const [config, setConfig] = useState({
-    title: "",
-  });
+  const [title, setTitle] = useState("");
 
   const createSpace = async () => {
+    if (!title) {
+      return toast.error("Please fill all fields");
+    }
     setLoading(true);
-
     try {
       const request = await fetch("/api/deploy", {
         method: "POST",
-        body: JSON.stringify({
-          title: config.title,
-          path,
-          html,
-          prompts,
-        }),
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({
+          html,
+          title,
+          path,
+          prompts: prompts.length ? prompts : undefined,
+        }),
       });
       const response = await request.json();
-      if (response.ok) {
-        toast.success(
-          <MsgToast
-            url={`https://huggingface.co/spaces/${response.path ?? path}`}
-          />,
-          {
-            autoClose: 10000,
-          }
-        );
-        setPath(response.path);
-      } else {
-        toast.error(response.message);
+      if (!response.ok) {
+        return toast.error(response.message || "Something went wrong");
       }
-    } catch (err: any) {
-      toast.error(err.message);
-    } finally {
+      toast.success(<LocalToast />);
+      setPath("local/project");
       setLoading(false);
       setOpen(false);
+    } catch (error) {
+      toast.error("Something went wrong");
+      setLoading(false);
     }
   };
 
@@ -107,16 +90,9 @@ function DeployButton({
               >
                 <FaPowerOff className="text-lg text-red-500" />
               </button>
-              <p className="mr-3 text-xs lg:text-sm text-gray-300">
-                <span className="max-lg:hidden">Connected as </span>
-                <a
-                  href={`https://huggingface.co/${auth.preferred_username}`}
-                  target="_blank"
-                  className="underline hover:text-white"
-                >
-                  {auth.preferred_username}
-                </a>
-              </p>
+              <div className="mr-3 text-xs lg:text-sm text-gray-100 flex items-center gap-2">
+                <span>Mode Local</span>
+              </div>
             </>
           ))}
         <button
@@ -182,20 +158,18 @@ function DeployButton({
                   )}
                 </p>
                 {!path && (
-                  <label className="block">
+                  <div className="flex flex-col gap-2">
                     <p className="text-gray-600 text-sm font-medium mb-1.5">
                       Space Title
                     </p>
                     <input
                       type="text"
-                      value={config.title}
-                      className="mr-2 border rounded-md px-3 py-1.5 border-gray-300 w-full text-sm"
-                      placeholder="My Awesome Space"
-                      onChange={(e) =>
-                        setConfig({ ...config, title: e.target.value })
-                      }
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full h-full py-2.5 text-gray-900 bg-gray-100 rounded-md border border-gray-200 px-4 outline-none font-medium text-sm focus:bg-white"
+                      placeholder="Mon site"
                     />
-                  </label>
+                  </div>
                 )}
                 {error && (
                   <p className="text-red-500 text-xs bg-red-500/10 rounded-md p-2">
@@ -204,9 +178,9 @@ function DeployButton({
                 )}
                 <div className="pt-2 text-right">
                   <button
-                    disabled={error || loading || (!path && !config.title)}
-                    className="relative rounded-full bg-black px-5 py-2 text-white font-semibold text-xs hover:bg-black/90 transition-all duration-100 disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed disabled:hover:bg-gray-300"
-                    onClick={createSpace}
+                    disabled={error || loading || (!path && !title)}
+                    className="w-full py-2.5 rounded-md bg-blue-500 text-white font-medium text-sm hover:bg-blue-400 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    onClick={path ? () => {} : createSpace}
                   >
                     {path ? "Update Space" : "Create Space"}
                     {loading && <Loading />}

@@ -7,7 +7,6 @@ import {
   useUnmount,
   useEvent,
   useLocalStorage,
-  useSearchParam,
 } from "react-use";
 import { toast } from "react-toastify";
 
@@ -16,12 +15,11 @@ import DeployButton from "./deploy-button/deploy-button";
 import { defaultHTML } from "./../../utils/consts";
 import Tabs from "./tabs/tabs";
 import AskAI from "./ask-ai/ask-ai";
-import { Auth } from "./../../utils/types";
 import Preview from "./preview/preview";
 
 function App() {
   const [htmlStorage, , removeHtmlStorage] = useLocalStorage("html_content");
-  const remix = useSearchParam("remix");
+  const remix = null; // Simplification pour le mode local
 
   const preview = useRef<HTMLDivElement>(null);
   const editor = useRef<HTMLDivElement>(null);
@@ -32,19 +30,23 @@ function App() {
   const [error, setError] = useState(false);
   const [html, setHtml] = useState((htmlStorage as string) ?? defaultHTML);
   const [isAiWorking, setisAiWorking] = useState(false);
-  const [auth, setAuth] = useState<Auth | undefined>(undefined);
+  // Utilisateur local par défaut
+  const [auth, setAuth] = useState<any>({
+    preferred_username: "local-user",
+    isLocalUse: true
+  });
   const [currentView, setCurrentView] = useState<"editor" | "preview">(
     "editor"
   );
   const [prompts, setPrompts] = useState<string[]>([]);
 
+  // Utilisation simplifiée sans authentification distante
   const fetchMe = async () => {
+    // Utilisateur toujours disponible en local
     const res = await fetch("/api/@me");
     if (res.ok) {
-      const data = await res.json();
-      setAuth(data);
-    } else {
-      setAuth(undefined);
+      const user = await res.json();
+      setAuth(user);
     }
   };
 
