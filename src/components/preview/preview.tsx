@@ -65,7 +65,7 @@ function Preview({
             target="_blank"
             className="bg-gray-200 text-gray-950 text-xs lg:text-sm font-medium py-2 px-3 lg:px-4 rounded-lg flex items-center gap-2 border border-gray-200 hover:bg-gray-300 transition-all duration-100 cursor-pointer"
           >
-            🖼️ <span>DeepSite Gallery</span>
+            🖼️ <span>LocalSite Gallery</span>
           </a>
         )}
         {!isAiWorking && (

@@ -16,10 +16,10 @@ function Header({
         <h1 className="text-white text-lg lg:text-xl font-bold flex items-center justify-start">
           <img
             src={Logo}
-            alt="DeepSite Logo"
+            alt="LocalSite Logo"
             className="size-6 lg:size-8 mr-2"
           />
-          DeepSite
+          LocalSite
         </h1>
         <p className="text-gray-700 max-md:hidden">|</p>
         <button
@@ -30,7 +30,7 @@ function Header({
           New
         </button>
         <p className="text-gray-500 text-sm max-md:hidden">
-          Imagine and Share in 1-Click
+          Create websites 100% locally
         </p>
       </div>
       {children}

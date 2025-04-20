@@ -33,7 +33,7 @@ app.use(express.static(path.join(__dirname, "dist")));
 
 // Fonction simplifiée sans référence à Huggingface
 const getPTag = () => {
-  return `<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with DeepSite Ollama</p>`;
+  return `<p style="border-radius: 8px; text-align: center; font-size: 12px; color: #fff; margin-top: 16px;position: fixed; left: 8px; bottom: 8px; z-index: 10; background: rgba(0, 0, 0, 0.8); padding: 4px 8px;">Made with LocalSite</p>`;
 };
 
 // Routes de login supprimées - application 100% locale
