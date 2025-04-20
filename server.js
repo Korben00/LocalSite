@@ -134,7 +134,7 @@ app.post("/api/ask-ai", async (req, res) => {
     const messages = [
       { role: "system", content: systemMessage },
       ...(previousPrompt ? [{ role: "user", content: previousPrompt }] : []),
-      ...(html ? [{ role: "assistant", content: `The current code is: ${html}.` }] : []),
+      ...(html ? [{ role: "assistant", content: `Here is the current HTML code that needs to be improved or modified based on the user request. Analyze this code carefully and make the requested changes while preserving the existing structure where appropriate: \n\n${html}` }] : []),
       { role: "user", content: prompt },
     ];
 
@@ -196,8 +196,12 @@ app.post("/api/ask-ai", async (req, res) => {
             res.write(content);
             completeResponse += content;
 
-            if (completeResponse.includes("</html>")) {
-              // Si on a trouvé une balise de fin HTML, on s'arrête
+            // Vérification plus complète qu'on a bien un document HTML complet
+            if (completeResponse.includes("</html>") && 
+                completeResponse.includes("<!DOCTYPE html") && 
+                completeResponse.includes("<head>") && 
+                completeResponse.includes("</body>")) {
+              // HTML est complet avec tous les éléments requis
               endStream();
               return;
             }
