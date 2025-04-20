@@ -10,7 +10,8 @@ import {
   spaceInfo,
   fileExists,
 } from "@huggingface/hub";
-import { InferenceClient } from "@huggingface/inference";
+// Suppression de l'import Huggingface Inference et ajout du client Ollama
+import axios from "axios";
 import bodyParser from "body-parser";
 
 import checkUser from "./middlewares/checkUser.js";
@@ -30,7 +31,7 @@ const __dirname = path.dirname(__filename);
 const PORT = process.env.APP_PORT || 3000;
 const REDIRECT_URI =
   process.env.REDIRECT_URI || `http://localhost:${PORT}/auth/login`;
-const MODEL_ID = "deepseek-ai/DeepSeek-V3-0324";
+const MODEL_ID = process.env.OLLAMA_MODEL || "deepseek-r1:7b"; // Modèle configurable via .env
 const MAX_REQUESTS_PER_IP = 2;
 
 app.use(cookieParser());
@@ -253,14 +254,13 @@ app.post("/api/ask-ai", async (req, res) => {
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
 
-  const client = new InferenceClient(token);
   let completeResponse = "";
 
   let TOKENS_USED = prompt?.length;
   if (previousPrompt) TOKENS_USED += previousPrompt.length;
   if (html) TOKENS_USED += html.length;
 
-  const DEFAULT_PROVIDER = PROVIDERS.novita;
+  const DEFAULT_PROVIDER = PROVIDERS.ollama;
   const selectedProvider =
     provider === "auto"
       ? DEFAULT_PROVIDER
@@ -275,72 +275,83 @@ app.post("/api/ask-ai", async (req, res) => {
   }
 
   try {
-    const chatCompletion = client.chatCompletionStream({
+    // Configuration pour Ollama
+    const systemMessage = previousPrompt || html
+      ? "You are a web expert - You can help create web pages based on clear requirements."
+      : "ONLY USE HTML, CSS AND JAVASCRIPT. If you want to use ICON make sure to import the library first. Try to create the best UI possible by using only HTML, CSS and JAVASCRIPT. Use as much as you can TailwindCSS for the CSS, if you can't do something with TailwindCSS, then use custom CSS (make sure to import <script src=\"https://cdn.tailwindcss.com\"></script> in the head). Also, try to ellaborate as much as you can, to create something unique. ALWAYS GIVE THE RESPONSE INTO A SINGLE HTML FILE";
+
+    const messages = [
+      { role: "system", content: systemMessage },
+      ...(previousPrompt ? [{ role: "user", content: previousPrompt }] : []),
+      ...(html ? [{ role: "assistant", content: `The current code is: ${html}.` }] : []),
+      { role: "user", content: prompt },
+    ];
+
+    // Configuration de la requête Ollama
+    const ollamaConfig = {
       model: MODEL_ID,
-      provider: selectedProvider.id,
-      messages: [
-        {
-          role: "system",
-          content: `ONLY USE HTML, CSS AND JAVASCRIPT. If you want to use ICON make sure to import the library first. Try to create the best UI possible by using only HTML, CSS and JAVASCRIPT. Use as much as you can TailwindCSS for the CSS, if you can't do something with TailwindCSS, then use custom CSS (make sure to import <script src="https://cdn.tailwindcss.com"></script> in the head). Also, try to ellaborate as much as you can, to create something unique. ALWAYS GIVE THE RESPONSE INTO A SINGLE HTML FILE`,
-        },
-        ...(previousPrompt
-          ? [
-              {
-                role: "user",
-                content: previousPrompt,
-              },
-            ]
-          : []),
-        ...(html
-          ? [
-              {
-                role: "assistant",
-                content: `The current code is: ${html}.`,
-              },
-            ]
-          : []),
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      ...(selectedProvider.id !== "sambanova"
-        ? {
-            max_tokens: selectedProvider.max_tokens,
-          }
-        : {}),
+      messages: messages,
+      stream: true,
+    };
+
+    // URL de l'API Ollama - utiliser une variable d'environnement ou configurez directement ici
+    const ollamaUrl = process.env.OLLAMA_URL || "http://localhost:11434/api/chat";
+
+    // Fonction pour traiter la réponse d'Ollama en streaming
+    const response = await axios({
+      method: "post",
+      url: ollamaUrl,
+      data: ollamaConfig,
+      responseType: "stream"
     });
 
-    while (true) {
-      const { done, value } = await chatCompletion.next();
-      if (done) {
-        break;
-      }
-      const chunk = value.choices[0]?.delta?.content;
-      if (chunk) {
-        if (provider !== "sambanova") {
-          res.write(chunk);
-          completeResponse += chunk;
+    // Traitement du stream de réponse d'Ollama
+    response.data.on('data', (chunk) => {
+      try {
+        // Ollama envoie des objets JSON délimités par des sauts de ligne
+        const lines = chunk.toString().split('\n').filter(line => line.trim());
+        
+        for (const line of lines) {
+          const data = JSON.parse(line);
+          const content = data.message?.content;
+          
+          if (content) {
+            res.write(content);
+            completeResponse += content;
 
-          if (completeResponse.includes("</html>")) {
-            break;
+            if (completeResponse.includes("</html>")) {
+              // Si on a trouvé une balise de fin HTML, on s'arrête
+              response.data.destroy(); // Arrête le stream
+              break;
+            }
           }
-        } else {
-          let newChunk = chunk;
-          if (chunk.includes("</html>")) {
-            // Replace everything after the last </html> tag with an empty string
-            newChunk = newChunk.replace(/<\/html>[\s\S]*/, "</html>");
-          }
-          completeResponse += newChunk;
-          res.write(newChunk);
-          if (newChunk.includes("</html>")) {
+          
+          // Si on a fini la génération
+          if (data.done) {
             break;
           }
         }
+      } catch (e) {
+        console.error('Erreur lors du parsing de la réponse Ollama:', e);
       }
-    }
-    // End the response stream
-    res.end();
+    });
+    // Gestion de la fin du stream
+    response.data.on('end', () => {
+      res.end();
+    });
+    
+    // Gestion des erreurs de stream
+    response.data.on('error', (err) => {
+      console.error('Erreur de stream:', err);
+      if (!res.headersSent) {
+        res.status(500).send({
+          ok: false,
+          message: err.message || "Une erreur s'est produite lors du streaming de la réponse"
+        });
+      } else {
+        res.end();
+      }
+    });
   } catch (error) {
     if (error.message.includes("exceeded your monthly included credits")) {
       return res.status(402).send({
