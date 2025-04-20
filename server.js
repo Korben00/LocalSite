@@ -289,7 +289,7 @@ app.post("/api/ask-ai", async (req, res) => {
 
     // Configuration de la requête Ollama
     const ollamaConfig = {
-      model: MODEL_ID,
+      model: provider !== "auto" ? provider : MODEL_ID,
       messages: messages,
       stream: true,
     };
@@ -306,6 +306,41 @@ app.post("/api/ask-ai", async (req, res) => {
     });
 
     // Traitement du stream de réponse d'Ollama
+    let streamTimeout;
+    const MAX_STREAM_TIME = 120000; // 2 minutes maximum
+    
+    // Fonction pour terminer proprement le stream
+    const endStream = () => {
+      if (streamTimeout) {
+        clearTimeout(streamTimeout);
+        streamTimeout = null;
+      }
+      
+      // Si le stream n'a pas déjà été terminé
+      if (!res.writableEnded) {
+        // Si la réponse ne contient pas de balise </html>, on l'ajoute
+        if (!completeResponse.includes("</html>")) {
+          res.write("\n</html>");
+        }
+        res.end();
+      }
+      
+      // Arrête le stream Ollama s'il est encore actif
+      if (response && response.data) {
+        try {
+          response.data.destroy();
+        } catch (err) {
+          console.error('Erreur lors de la fermeture du stream:', err);
+        }
+      }
+    };
+    
+    // Définir un timeout pour s'assurer que le stream ne reste pas bloqué indéfiniment
+    streamTimeout = setTimeout(() => {
+      console.log('Timeout de sécurité atteint, fermeture du stream');
+      endStream();
+    }, MAX_STREAM_TIME);
+    
     response.data.on('data', (chunk) => {
       try {
         // Ollama envoie des objets JSON délimités par des sauts de ligne
@@ -321,14 +356,15 @@ app.post("/api/ask-ai", async (req, res) => {
 
             if (completeResponse.includes("</html>")) {
               // Si on a trouvé une balise de fin HTML, on s'arrête
-              response.data.destroy(); // Arrête le stream
-              break;
+              endStream();
+              return;
             }
           }
           
           // Si on a fini la génération
           if (data.done) {
-            break;
+            endStream();
+            return;
           }
         }
       } catch (e) {
@@ -337,18 +373,31 @@ app.post("/api/ask-ai", async (req, res) => {
     });
     // Gestion de la fin du stream
     response.data.on('end', () => {
-      res.end();
+      if (streamTimeout) {
+        clearTimeout(streamTimeout);
+        streamTimeout = null;
+      }
+      
+      if (!res.writableEnded) {
+        res.end();
+      }
     });
     
     // Gestion des erreurs de stream
     response.data.on('error', (err) => {
       console.error('Erreur de stream:', err);
+      
+      if (streamTimeout) {
+        clearTimeout(streamTimeout);
+        streamTimeout = null;
+      }
+      
       if (!res.headersSent) {
         res.status(500).send({
           ok: false,
           message: err.message || "Une erreur s'est produite lors du streaming de la réponse"
         });
-      } else {
+      } else if (!res.writableEnded) {
         res.end();
       }
     });

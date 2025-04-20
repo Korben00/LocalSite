@@ -47,7 +47,7 @@ function Settings({
       >
         <header className="flex items-center text-sm px-4 py-2 border-b border-gray-200 gap-2 bg-gray-100 font-semibold text-gray-700">
           <span className="text-xs bg-blue-500/10 text-blue-500 rounded-full pl-1.5 pr-2.5 py-0.5 flex items-center justify-start gap-1.5">
-            Provider
+            Modèle
           </span>
           Customize Settings
         </header>
@@ -101,7 +101,7 @@ function Settings({
           )}
           <label className="block">
             <p className="text-gray-800 text-sm font-medium mb-2 flex items-center justify-between">
-              Inference Provider
+              Modèle Ollama
             </p>
             <div className="grid grid-cols-2 gap-1.5">
               {Object.keys(PROVIDERS).map((id: string) => (
@@ -119,11 +119,9 @@ function Settings({
                     onChange(id);
                   }}
                 >
-                  <img
-                    src={`/providers/${id}.svg`}
-                    alt={PROVIDERS[id].name}
-                    className="size-5"
-                  />
+                  <span className="size-5 flex items-center justify-center text-blue-500">
+                    <PiGearSixFill />
+                  </span>
                   {PROVIDERS[id].name}
                 </div>
               ))}
