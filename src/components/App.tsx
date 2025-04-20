@@ -11,7 +11,7 @@ import {
 import { toast } from "react-toastify";
 
 import Header from "./header/header";
-import DeployButton from "./deploy-button/deploy-button";
+// DeployButton supprimé pour version 100% locale
 import { defaultHTML } from "./../../utils/consts";
 import Tabs from "./tabs/tabs";
 import AskAI from "./ask-ai/ask-ai";
@@ -27,27 +27,20 @@ function App() {
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   const [isResizing, setIsResizing] = useState(false);
-  const [error, setError] = useState(false);
+  // Variable error supprimée car non utilisée
   const [html, setHtml] = useState((htmlStorage as string) ?? defaultHTML);
   const [isAiWorking, setisAiWorking] = useState(false);
   // Utilisateur local par défaut
-  const [auth, setAuth] = useState<any>({
-    preferred_username: "local-user",
-    isLocalUse: true
-  });
+  // Variables d'authentification supprimées car non utilisées
   const [currentView, setCurrentView] = useState<"editor" | "preview">(
     "editor"
   );
-  const [prompts, setPrompts] = useState<string[]>([]);
+  // Variable prompts supprimée
 
   // Utilisation simplifiée sans authentification distante
+  // Fonction de récupération utilisateur désactivée car nous sommes toujours en local
   const fetchMe = async () => {
-    // Utilisateur toujours disponible en local
-    const res = await fetch("/api/@me");
-    if (res.ok) {
-      const user = await res.json();
-      setAuth(user);
-    }
+    // Fonction simplifiée en mode local
   };
 
   const fetchRemix = async () => {
@@ -177,22 +170,14 @@ function App() {
             window.confirm("You're about to reset the editor. Are you sure?")
           ) {
             setHtml(defaultHTML);
-            setError(false);
             removeHtmlStorage();
             editorRef.current?.revealLine(
               editorRef.current?.getModel()?.getLineCount() ?? 0
             );
           }
         }}
-      >
-        <DeployButton
-          html={html}
-          error={error}
-          auth={auth}
-          setHtml={setHtml}
-          prompts={prompts}
-        />
-      </Header>
+      />
+      {/* Boutons de déploiement supprimés pour version 100% locale */}
       <main className="max-lg:flex-col flex w-full">
         <div
           ref={editor}
@@ -223,15 +208,13 @@ function App() {
                 }
               )}
               value={html}
-              onValidate={(markers) => {
-                if (markers?.length > 0) {
-                  setError(true);
-                }
+              onValidate={() => {
+                // Validation simplifiée
               }}
               onChange={(value) => {
                 const newValue = value ?? "";
                 setHtml(newValue);
-                setError(false);
+                // setError supprimé
               }}
               onMount={(editor) => (editorRef.current = editor)}
             />
@@ -242,8 +225,8 @@ function App() {
             isAiWorking={isAiWorking}
             setisAiWorking={setisAiWorking}
             setView={setCurrentView}
-            onNewPrompt={(prompt) => {
-              setPrompts((prev) => [...prev, prompt]);
+            onNewPrompt={() => {
+              // Gestion des prompts simplifiée en mode local
             }}
             onScrollToBottom={() => {
               editorRef.current?.revealLine(
