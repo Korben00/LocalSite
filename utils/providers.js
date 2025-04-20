@@ -25,4 +25,9 @@ export const PROVIDERS = {
     max_tokens: 131_000,
     id: "qwen2.5-coder:32b",
   },
+  "deepcoder:14b": {
+    name: "DeepCoder",
+    max_tokens: 131_000,
+    id: "deepcoder:14b",
+  },
 };

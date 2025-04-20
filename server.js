@@ -128,8 +128,8 @@ app.post("/api/ask-ai", async (req, res) => {
   try {
     // Configuration pour Ollama
     const systemMessage = previousPrompt || html
-      ? "You are a web expert - You can help create web pages based on clear requirements."
-      : "ONLY USE HTML, CSS AND JAVASCRIPT. If you want to use ICON make sure to import the library first. Try to create the best UI possible by using only HTML, CSS and JAVASCRIPT. Use as much as you can TailwindCSS for the CSS, if you can't do something with TailwindCSS, then use custom CSS (make sure to import <script src=\"https://cdn.tailwindcss.com\"></script> in the head). Also, try to ellaborate as much as you can, to create something unique. ALWAYS GIVE THE RESPONSE INTO A SINGLE HTML FILE";
+      ? "You are an expert web developer and designer. Create visually appealing, modern web pages with clean code. Use proper HTML5 semantics and follow best practices for accessibility and performance. Prioritize unique and engaging user experiences with seamless interactions. Always wrap your code in a complete, valid HTML document with properly connected stylesheets and scripts."
+      : "Create a visually stunning, modern webpage using HTML, CSS, and JavaScript. Follow these requirements precisely:\n\n1. AESTHETICS: Use modern design principles with beautiful typography, color schemes, and spacing. Create visually engaging layouts that draw attention.\n\n2. TECHNICAL REQUIREMENTS:\n   - Use TailwindCSS extensively (include <script src=\"https://cdn.tailwindcss.com\"></script> in head)\n   - Add modern icons using a CDN library like Font Awesome or Heroicons\n   - Create responsive layouts that work perfectly across all devices\n   - Use smooth animations and transitions for interactive elements\n   - Implement semantic HTML5 with proper accessibility attributes\n\n3. CODE QUALITY:\n   - Write clean, maintainable code with consistent indentation\n   - Use descriptive class and ID names\n   - Include helpful comments for complex sections\n   - Ensure valid HTML, CSS, and JavaScript\n\n4. CREATIVITY:\n   - Add unique interactive elements or animations\n   - Use creative layouts beyond standard templates\n   - Incorporate subtle design flourishes that enhance user experience\n\nALWAYS provide ONE COMPLETE HTML FILE with all CSS and JavaScript included. Do not send separate files.";
 
     const messages = [
       { role: "system", content: systemMessage },
@@ -143,6 +143,10 @@ app.post("/api/ask-ai", async (req, res) => {
       model: provider !== "auto" ? provider : MODEL_ID,
       messages: messages,
       stream: true,
+      options: {
+        temperature: 0.8,
+        top_p: 0.9
+      }
     };
 
     // URL de l'API Ollama - utiliser une variable d'environnement ou configurez directement ici
@@ -157,16 +161,9 @@ app.post("/api/ask-ai", async (req, res) => {
     });
 
     // Traitement du stream de réponse d'Ollama
-    let streamTimeout;
-    const MAX_STREAM_TIME = 120000; // 2 minutes maximum
     
     // Fonction pour terminer proprement le stream
     const endStream = () => {
-      if (streamTimeout) {
-        clearTimeout(streamTimeout);
-        streamTimeout = null;
-      }
-      
       // Si le stream n'a pas déjà été terminé
       if (!res.writableEnded) {
         // Si la réponse ne contient pas de balise </html>, on l'ajoute
@@ -185,12 +182,6 @@ app.post("/api/ask-ai", async (req, res) => {
         }
       }
     };
-    
-    // Définir un timeout pour s'assurer que le stream ne reste pas bloqué indéfiniment
-    streamTimeout = setTimeout(() => {
-      console.log('Timeout de sécurité atteint, fermeture du stream');
-      endStream();
-    }, MAX_STREAM_TIME);
     
     response.data.on('data', (chunk) => {
       try {
