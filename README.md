@@ -1,17 +1,3 @@
----
-title: LocalSite
-emoji: 🐳
-colorFrom: blue
-colorTo: blue
-sdk: docker
-pinned: true
-app_port: 5173
-license: mit
-short_description: Generate any application with DeepSeek
-models:
-  - deepseek-ai/DeepSeek-V3-0324
----
-
 # LocalSite 🌐
 
 LocalSite is a web creation platform that works 100% locally with Ollama. Perfect for developers who want to quickly create websites without external dependencies or authentication.
