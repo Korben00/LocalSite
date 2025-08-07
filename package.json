@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:server": "tsc --project tsconfig.server.json",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "node server.js"
+    "start": "ts-node server.ts",
+    "start:prod": "node dist-server/server.js"
   },
   "dependencies": {
     "@huggingface/hub": "^1.1.1",
@@ -33,7 +35,10 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
+    "@types/body-parser": "^1.19.6",
+    "@types/cookie-parser": "^1.4.9",
     "@types/express": "^5.0.1",
+    "@types/node": "^24.2.0",
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@types/react-speech-recognition": "^3.9.6",
@@ -42,6 +47,7 @@
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
+    "ts-node": "^10.9.2",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0"
