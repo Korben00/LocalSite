@@ -27,7 +27,6 @@ export function Footer({
   device,
   setDevice,
   iframeRef,
-  currentHtml,
 }: {
   onReset: () => void;
   htmlHistory?: HtmlHistory[];
