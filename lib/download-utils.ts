@@ -1,3 +1,4 @@
+/* CORRECTION 2 : lib/download-utils.ts */
 "use client";
 
 export const downloadAsZip = async (
@@ -30,4 +31,11 @@ export const downloadAsZip = async (
     console.error("Erreur lors du téléchargement:", error);
     throw error;
   }
+};
+
+export const downloadProjectAsZip = async (
+  html: string,
+  projectName: string = "project"
+) => {
+  return downloadAsZip(html, projectName);
 };
