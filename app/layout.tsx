@@ -9,7 +9,7 @@ import { Toaster } from "@/components/ui/sonner";
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
 import { apiServer } from "@/lib/api";
 import AppContext from "@/components/contexts/app-context";
-import Script from "next/script";
+
 
 const inter = Inter({
   variable: "--font-inter-sans",
