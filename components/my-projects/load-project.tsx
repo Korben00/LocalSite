@@ -205,7 +205,7 @@ export const LoadProject = ({
                 <input
                   ref={folderInputRef}
                   type="file"
-                  // @ts-ignore
+                  // @ts-expect-error
                   webkitdirectory=""
                   multiple
                   onChange={handleFolderImport}
