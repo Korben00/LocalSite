@@ -1,4 +1,3 @@
-// 1. Correction pour app/api/ollama-models/route.ts
 import { NextResponse } from "next/server";
 
 interface OllamaModel {
@@ -50,35 +49,3 @@ function formatSize(bytes: number): string {
   }
   return `${(bytes / 1e9).toFixed(1)} GB`;
 }
-
-// 2. Correction pour app/layout.tsx
-// Supprimer la ligne d'import non utilisée :
-// import Script from "next/script";
-
-// 3. Correction pour components/editor/footer/index.tsx
-// Supprimer ou utiliser la variable 'currentHtml'
-
-// 4. Correction pour components/my-projects/load-project.tsx
-// Remplacer les types 'any' par des interfaces spécifiques
-
-interface ProjectData {
-  space_id: string;
-  prompts: string[];
-  // Ajoutez d'autres propriétés selon vos besoins
-}
-
-// Remplacer :
-// const data: any = await response.json();
-// Par :
-// const data: ProjectData = await response.json();
-
-// Et remplacer :
-// // @ts-ignore
-// Par :
-// // @ts-expect-error - Description de pourquoi cette erreur est attendue
-
-// 5. Correction pour lib/download-utils.ts
-// Supprimer le paramètre 'projectName' non utilisé ou l'utiliser dans la fonction
-
-// 6. Correction pour lib/providers-dynamic.ts
-// Supprimer le disable ESLint si plus nécessaire
