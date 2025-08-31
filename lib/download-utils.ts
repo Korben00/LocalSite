@@ -1,4 +1,3 @@
-/* CORRECTION 2 : lib/download-utils.ts */
 "use client";
 
 export const downloadAsZip = async (
