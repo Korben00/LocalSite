@@ -29,9 +29,7 @@ export function Settings({
   model,
   onChange,
   onModelChange,
-  open,
   error,
-  isFollowUp,
   onClose,
 }: SettingsProps) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
