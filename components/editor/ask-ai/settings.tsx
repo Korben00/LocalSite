@@ -84,25 +84,28 @@ export function Settings({
             <>
               <div className="text-sm font-medium mb-2 mt-4">Provider</div>
               <div className="space-y-1">
-                {availableProviders.map((providerItem) => (
-                  <DropdownMenuItem
-                    key={providerItem}
-                    onClick={() => onChange(providerItem)}
-                    className={provider === providerItem ? "bg-accent" : ""}
-                  >
-                    <div className="flex items-center space-x-2">
-                      {PROVIDERS[providerItem as keyof typeof PROVIDERS] && (
-                        <Image
-                          src={PROVIDERS[providerItem as keyof typeof PROVIDERS].logo}
-                          alt={providerItem}
-                          width={16}
-                          height={16}
-                        />
-                      )}
-                      <span className="capitalize">{providerItem}</span>
-                    </div>
-                  </DropdownMenuItem>
-                ))}
+                {availableProviders.map((providerItem) => {
+                  const providerConfig = PROVIDERS[providerItem as keyof typeof PROVIDERS];
+                  return (
+                    <DropdownMenuItem
+                      key={providerItem}
+                      onClick={() => onChange(providerItem)}
+                      className={provider === providerItem ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center space-x-2">
+                        {providerConfig && 'logo' in providerConfig && (
+                          <Image
+                            src={providerConfig.logo as string}
+                            alt={providerItem}
+                            width={16}
+                            height={16}
+                          />
+                        )}
+                        <span className="capitalize">{providerItem}</span>
+                      </div>
+                    </DropdownMenuItem>
+                  );
+                })}
               </div>
             </>
           )}
