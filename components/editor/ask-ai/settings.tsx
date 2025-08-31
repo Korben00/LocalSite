@@ -14,54 +14,68 @@ import {
 import { MODELS, PROVIDERS } from "@/lib/providers";
 
 interface SettingsProps {
-  selectedModel: string;
-  selectedProvider: string;
+  provider: string;
+  model: string;
+  onChange: (provider: string) => void;
   onModelChange: (model: string) => void;
-  onProviderChange: (provider: string) => void;
+  open: boolean;
+  error: string;
+  isFollowUp: boolean;
+  onClose: () => void;
 }
 
 export function Settings({
-  selectedModel,
-  selectedProvider,
+  provider,
+  model,
+  onChange,
   onModelChange,
-  onProviderChange,
+  open,
+  error,
+  isFollowUp,
+  onClose,
 }: SettingsProps) {
-  const [open, setOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
-  const availableModels = MODELS.filter(model => {
+  const availableModels = MODELS.filter(modelItem => {
     const isLocalMode = process.env.NEXT_PUBLIC_LOCAL_MODE === "true";
     if (isLocalMode) {
-      return model.providers.includes("openrouter") || model.providers.includes("auto");
+      return modelItem.providers.includes("openrouter") || modelItem.providers.includes("auto");
     }
     return true;
   });
 
-  const selectedModelObj = availableModels.find(m => m.value === selectedModel);
+  const selectedModelObj = availableModels.find(m => m.value === model);
   const availableProviders = selectedModelObj?.providers || [];
 
   return (
-    <DropdownMenu open={open} onOpenChange={setOpen}>
+    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
           <SettingsIcon className="h-4 w-4 mr-2" />
-          {selectedModelObj?.label || selectedModel}
+          {selectedModelObj?.label || model}
           <ChevronDown className="h-4 w-4 ml-2" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="p-2">
+          {error && (
+            <div className="text-red-500 text-xs mb-2 p-2 bg-red-50 rounded">
+              {error}
+            </div>
+          )}
+          
           <div className="text-sm font-medium mb-2">Modèle</div>
           <div className="space-y-1 max-h-64 overflow-y-auto">
-            {availableModels.map((model) => (
+            {availableModels.map((modelItem) => (
               <DropdownMenuItem
-                key={model.value}
-                onClick={() => onModelChange(model.value)}
-                className={selectedModel === model.value ? "bg-accent" : ""}
+                key={modelItem.value}
+                onClick={() => onModelChange(modelItem.value)}
+                className={model === modelItem.value ? "bg-accent" : ""}
               >
                 <div>
-                  <div className="font-medium">{model.label}</div>
+                  <div className="font-medium">{modelItem.label}</div>
                   <div className="text-xs text-muted-foreground">
-                    Providers: {model.providers.join(", ")}
+                    Providers: {modelItem.providers.join(", ")}
                   </div>
                 </div>
               </DropdownMenuItem>
@@ -72,28 +86,39 @@ export function Settings({
             <>
               <div className="text-sm font-medium mb-2 mt-4">Provider</div>
               <div className="space-y-1">
-                {availableProviders.map((provider) => (
+                {availableProviders.map((providerItem) => (
                   <DropdownMenuItem
-                    key={provider}
-                    onClick={() => onProviderChange(provider)}
-                    className={selectedProvider === provider ? "bg-accent" : ""}
+                    key={providerItem}
+                    onClick={() => onChange(providerItem)}
+                    className={provider === providerItem ? "bg-accent" : ""}
                   >
                     <div className="flex items-center space-x-2">
-                      {PROVIDERS[provider as keyof typeof PROVIDERS] && (
+                      {PROVIDERS[providerItem as keyof typeof PROVIDERS] && (
                         <Image
-                          src={PROVIDERS[provider as keyof typeof PROVIDERS].logo}
-                          alt={provider}
+                          src={PROVIDERS[providerItem as keyof typeof PROVIDERS].logo}
+                          alt={providerItem}
                           width={16}
                           height={16}
                         />
                       )}
-                      <span className="capitalize">{provider}</span>
+                      <span className="capitalize">{providerItem}</span>
                     </div>
                   </DropdownMenuItem>
                 ))}
               </div>
             </>
           )}
+          
+          <div className="mt-4 pt-2 border-t">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onClose}
+              className="w-full"
+            >
+              Fermer
+            </Button>
+          </div>
         </div>
       </DropdownMenuContent>
     </DropdownMenu>
