@@ -424,7 +424,7 @@ export function AskAI({
               open={openProvider}
               error={providerError}
               isFollowUp={!isSameHtml && isFollowUp}
-              onClose={setOpenProvider}
+              onClose={() => setOpenProvider(false)}
             />
             <Button
               size="iconXs"
