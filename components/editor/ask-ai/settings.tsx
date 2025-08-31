@@ -1,7 +1,9 @@
+/* CORRECTION 1 : components/editor/ask-ai/settings.tsx */
 "use client";
 
 import { useState } from "react";
-import { Settings, ChevronDown } from "lucide-react";
+import { Settings as SettingsIcon, ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,19 +14,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MODELS, PROVIDERS } from "@/lib/providers";
 
-interface AiSettingsProps {
+interface SettingsProps {
   selectedModel: string;
   selectedProvider: string;
   onModelChange: (model: string) => void;
   onProviderChange: (provider: string) => void;
 }
 
-export function AiSettings({
+export function Settings({
   selectedModel,
   selectedProvider,
   onModelChange,
   onProviderChange,
-}: AiSettingsProps) {
+}: SettingsProps) {
   const [open, setOpen] = useState(false);
 
   // En mode local avec OpenRouter, utiliser les modèles OpenRouter
@@ -45,7 +47,7 @@ export function AiSettings({
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm">
-          <Settings className="h-4 w-4 mr-2" />
+          <SettingsIcon className="h-4 w-4 mr-2" />
           {selectedModelObj?.label || selectedModel}
           <ChevronDown className="h-4 w-4 ml-2" />
         </Button>
@@ -82,10 +84,11 @@ export function AiSettings({
                   >
                     <div className="flex items-center space-x-2">
                       {PROVIDERS[provider as keyof typeof PROVIDERS] && (
-                        <img
+                        <Image
                           src={PROVIDERS[provider as keyof typeof PROVIDERS].logo}
                           alt={provider}
-                          className="w-4 h-4"
+                          width={16}
+                          height={16}
                         />
                       )}
                       <span className="capitalize">{provider}</span>
@@ -100,3 +103,45 @@ export function AiSettings({
     </DropdownMenu>
   );
 }
+
+/* CORRECTION 2 : lib/download-utils.ts */
+"use client";
+
+export const downloadAsZip = async (
+  html: string,
+  filename: string = "website"
+) => {
+  try {
+    const response = await fetch("/api/download", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ html }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Erreur lors de la création du ZIP");
+    }
+
+    const blob = await response.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${filename}.zip`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Erreur lors du téléchargement:", error);
+    throw error;
+  }
+};
+
+export const downloadProjectAsZip = async (
+  html: string,
+  projectName: string = "project"
+) => {
+  return downloadAsZip(html, projectName);
+};
