@@ -31,6 +31,3 @@ export const downloadAsZip = async (
     throw error;
   }
 };
-
-// Export pour compatibilité avec les anciens imports
-export const downloadProjectAsZip = downloadAsZip;
