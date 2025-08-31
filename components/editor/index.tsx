@@ -39,10 +39,10 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
   const deploy = searchParams.get("deploy") === "true";
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const preview = useRef<HTMLDivElement>(null);
-  const editor = useRef<HTMLDivElement>(null);
+  const preview = useRef<HTMLDivElement | null>(null);
+  const editor = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const resizer = useRef<HTMLDivElement>(null);
+  const resizer = useRef<HTMLDivElement | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
 
