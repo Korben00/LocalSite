@@ -180,9 +180,10 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
     <section className="h-[100dvh] bg-neutral-950 flex flex-col">
       <Header tab={currentTab} onNewTab={setCurrentTab}>
         <LoadProject
-          onLoad={(project: { space_id: string; prompts: string[] }) => {
-         // Traiter les données du projet chargé
-            toast.success("Project loaded successfully!");
+          onLoad={(project) => {
+            setHtml(project.html);
+            setPrompts(project.prompts);
+            toast.success(`Project "${project.space_id}" loaded successfully!`);
           }}
         />
         <DownloadButton html={html} />

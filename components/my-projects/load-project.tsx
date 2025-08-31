@@ -21,7 +21,11 @@ interface ProjectsResponse {
 export function LoadProject({
   onLoad,
 }: {
-  onLoad: (project: { space_id: string; prompts: string[] }) => void;
+  onLoad: (project: {
+    space_id: string;
+    prompts: string[];
+    html: string;
+  }) => void;
 }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,15 +76,8 @@ export function LoadProject({
       onLoad({
         space_id: project.space_id,
         prompts: project.prompts,
+        html: cleanHtml,
       });
-      
-      // Mettre à jour l'éditeur avec le HTML récupéré
-      const editor = document.querySelector('[data-editor="true"]') as HTMLElement;
-      if (editor && 'value' in editor) {
-        // @ts-expect-error - L'éditeur a une propriété value pour définir le contenu
-        editor.value = cleanHtml;
-      }
-      
     } catch (err) {
       console.error("Error loading project:", err);
       setError("Impossible de charger le projet");
