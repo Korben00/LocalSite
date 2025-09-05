@@ -20,7 +20,7 @@ export const getApiEndpoint = (endpoint: string): string => {
   
   switch (endpoint) {
     case "/api/ask-ai":
-      // En mode local, utiliser l'API modifiée pour OpenRouter
+      // En mode local, utiliser l'API locale avec Ollama
       return localMode ? "/api/ask-ai-local" : "/api/ask-ai";
     case "/api/auth":
       // En mode local, pas d'authentification mais retourner une chaîne valide
@@ -31,11 +31,11 @@ export const getApiEndpoint = (endpoint: string): string => {
 };
 
 export const getDefaultProvider = (): string => {
-  // Utiliser OpenRouter au lieu d'Ollama en mode local
-  return isLocalMode() ? "openrouter" : "auto";
+  // Utiliser Ollama en mode local
+  return isLocalMode() ? "ollama" : "auto";
 };
 
 export const getDefaultModel = (): string => {
-  // Utiliser le modèle OpenRouter gratuit au lieu de deepseek local
-  return isLocalMode() ? "moonshotai/kimi-dev-72b:free" : "deepseek-ai/DeepSeek-V3-0324";
+  // Utiliser le modèle Ollama local au lieu du modèle cloud
+  return isLocalMode() ? "deepseek-r1:7b" : "deepseek-ai/DeepSeek-V3-0324";
 };
