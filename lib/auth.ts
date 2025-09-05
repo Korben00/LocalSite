@@ -13,8 +13,10 @@ Promise<UserResponse | NextResponse<unknown> | undefined> => {
     return {
       id: "local-user",
       name: "Local User",
-      preferred_username: "local",
-      avatar_url: null,
+      fullname: "Local User",
+      avatarUrl: "",
+      isPro: false,
+      isLocalUse: true,
       token: "local-token",
     } as UserResponse;
   }

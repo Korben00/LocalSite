@@ -33,9 +33,19 @@ export function MyProjects({
             </p>
           </div>
           <LoadProject
-            fullXsBtn
-            onSuccess={(project: Project) => {
-              setProjects((prev) => [...prev, project]);
+            onLoad={(project) => {
+              // Convertir le format reçu en Project pour l'ajouter à la liste
+              const newProject: Project = {
+                _id: Date.now().toString(),
+                title: project.space_id,
+                html: project.html,
+                prompts: project.prompts,
+                user_id: user?.id || '',
+                space_id: project.space_id,
+                _updatedAt: new Date(),
+                _createdAt: new Date()
+              };
+              setProjects((prev) => [...prev, newProject]);
             }}
           />
         </header>
