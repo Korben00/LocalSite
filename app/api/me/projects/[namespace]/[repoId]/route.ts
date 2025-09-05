@@ -8,7 +8,7 @@ import { getPTag } from "@/lib/utils";
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ namespace: string; repoId: string }> }
+  { params }: { params: { namespace: string; repoId: string } }
 ) {
   const user = await isAuthenticated();
 
@@ -17,8 +17,7 @@ export async function GET(
   }
 
   await dbConnect();
-  const param = await params;
-  const { namespace, repoId } = param;
+  const { namespace, repoId } = params;
 
   const project = await Project.findOne({
     user_id: user.id,
@@ -106,7 +105,7 @@ export async function GET(
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: Promise<{ namespace: string; repoId: string }> }
+  { params }: { params: { namespace: string; repoId: string } }
 ) {
   const user = await isAuthenticated();
 
@@ -115,8 +114,7 @@ export async function PUT(
   }
 
   await dbConnect();
-  const param = await params;
-  const { namespace, repoId } = param;
+  const { namespace, repoId } = params;
   const { html, prompts } = await req.json();
 
   const project = await Project.findOne({
@@ -163,7 +161,7 @@ export async function PUT(
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: Promise<{ namespace: string; repoId: string }> }
+  { params }: { params: { namespace: string; repoId: string } }
 ) {
   const user = await isAuthenticated();
 
@@ -172,8 +170,7 @@ export async function POST(
   }
 
   await dbConnect();
-  const param = await params;
-  const { namespace, repoId } = param;
+  const { namespace, repoId } = params;
 
   const space = await spaceInfo({
     name: namespace + "/" + repoId,

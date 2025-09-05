@@ -67,7 +67,7 @@ export const viewport: Viewport = {
 };
 
 async function getMe() {
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return { user: null, errCode: null };
   try {

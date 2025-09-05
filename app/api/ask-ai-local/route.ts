@@ -45,7 +45,7 @@ async function callOllama(messages: any[], model: string, stream = true) {
 }
 
 export async function POST(request: NextRequest) {
-  const authHeaders = await headers();
+  const authHeaders = headers();
   const body = await request.json();
   const { prompt, provider, model, redesignMarkdown, html } = body;
 
@@ -60,9 +60,10 @@ export async function POST(request: NextRequest) {
   const isLocalMode = process.env.LOCAL_MODE === 'true' || process.env.NODE_ENV === 'development';
   
   if (!isLocalMode) {
-    const ip = authHeaders.get("x-forwarded-for")?.includes(",")
-      ? authHeaders.get("x-forwarded-for")?.split(",")[1].trim()
-      : authHeaders.get("x-forwarded-for") || 'unknown';
+    const rawFwd = authHeaders.get("x-forwarded-for");
+    const ip = rawFwd?.includes(",")
+      ? rawFwd.split(",")[1].trim()
+      : rawFwd || 'unknown';
     
     ipAddresses.set(ip, (ipAddresses.get(ip) || 0) + 1);
     if (ipAddresses.get(ip) > MAX_REQUESTS_PER_IP) {
@@ -182,7 +183,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const authHeaders = await headers();
+  const authHeaders = headers();
   const body = await request.json();
   const { prompt, html, previousPrompt, provider, selectedElementHtml, model } =
     body;
@@ -198,9 +199,10 @@ export async function PUT(request: NextRequest) {
   const isLocalMode = process.env.LOCAL_MODE === 'true' || process.env.NODE_ENV === 'development';
   
   if (!isLocalMode) {
-    const ip = authHeaders.get("x-forwarded-for")?.includes(",")
-      ? authHeaders.get("x-forwarded-for")?.split(",")[1].trim()
-      : authHeaders.get("x-forwarded-for") || 'unknown';
+    const rawFwd2 = authHeaders.get("x-forwarded-for");
+    const ip = rawFwd2?.includes(",")
+      ? rawFwd2.split(",")[1].trim()
+      : rawFwd2 || 'unknown';
     
     ipAddresses.set(ip, (ipAddresses.get(ip) || 0) + 1);
     if (ipAddresses.get(ip) > MAX_REQUESTS_PER_IP) {

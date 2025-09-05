@@ -19,7 +19,7 @@ export async function GET() {
     );
   }
 
-  const authHeaders = await headers();
+  const authHeaders = headers();
   const token = authHeaders.get("Authorization");
   if (!token) {
     return NextResponse.json({ user: null, errCode: 401 }, { status: 401 });

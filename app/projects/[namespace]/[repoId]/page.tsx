@@ -7,7 +7,7 @@ import { AppEditor } from "@/components/editor";
 
 async function getProject(namespace: string, repoId: string) {
   // TODO replace with a server action
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return {};
   try {
@@ -29,9 +29,9 @@ async function getProject(namespace: string, repoId: string) {
 export default async function ProjectNamespacePage({
   params,
 }: {
-  params: Promise<{ namespace: string; repoId: string }>;
+  params: { namespace: string; repoId: string };
 }) {
-  const { namespace, repoId } = await params;
+  const { namespace, repoId } = params;
   const project = await getProject(namespace, repoId);
   if (!project?.html) {
     redirect("/projects");

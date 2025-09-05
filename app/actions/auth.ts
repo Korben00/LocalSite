@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 
 export async function getAuth() {
-  const authList = await headers();
+  const authList = headers();
   const host = authList.get("host") ?? "localhost:3000";
   const url = host.includes("/spaces/enzostvs")
     ? "enzostvs-deepsite.hf.space"
