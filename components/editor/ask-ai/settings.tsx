@@ -28,7 +28,7 @@ export function Settings({
   onClose,
   provider,
   model,
-  error,
+  error = "",
   isFollowUp = false,
   onChange,
   onModelChange,
@@ -65,7 +65,11 @@ export function Settings({
     <div className="">
       <Popover open={open} onOpenChange={onClose}>
         <PopoverTrigger asChild>
-          <Button variant="black" size="sm">
+          <Button 
+            variant="black" 
+            size="sm"
+            onClick={() => onClose(!open)}
+          >
             <PiGearSixFill className="size-4" />
             Settings
           </Button>
