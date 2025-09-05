@@ -29,10 +29,9 @@ import { DownloadButton } from "./download-button";
 import { isTheSameHtml } from "@/lib/compare-html-diff";
 
 export const AppEditor = ({ project }: { project?: Project | null }) => {
-  const [htmlStorage, , removeHtmlStorage] = useLocalStorage("html_content");
   const [, copyToClipboard] = useCopyToClipboard();
   const { html, setHtml, htmlHistory, setHtmlHistory, prompts, setPrompts } =
-    useEditor(project?.html ?? (htmlStorage as string) ?? defaultHTML);
+    useEditor(project?.html ?? defaultHTML);
   // get query params from URL
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -129,10 +128,14 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
       });
       router.replace(`/projects/${project?.space_id}`);
     }
-    if (htmlStorage) {
-      removeHtmlStorage();
-      toast.warning("Previous HTML content restored from local storage.");
-    }
+    try {
+      const stored = localStorage.getItem("html_content");
+      if (stored) {
+        setHtml(stored);
+        localStorage.removeItem("html_content");
+        toast.warning("Previous HTML content restored from local storage.");
+      }
+    } catch {}
 
     resetLayout();
     if (!resizer.current) return;
@@ -329,7 +332,7 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
             window.confirm("You're about to reset the editor. Are you sure?")
           ) {
             setHtml(defaultHTML);
-            removeHtmlStorage();
+            try { localStorage.removeItem("html_content"); } catch {}
             editorRef.current?.revealLine(
               editorRef.current?.getModel()?.getLineCount() ?? 0
             );
