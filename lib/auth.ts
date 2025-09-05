@@ -9,7 +9,10 @@ type UserResponse = User & { token: string };
 export const isAuthenticated = async (): // req: NextRequest
 Promise<UserResponse | NextResponse<unknown> | undefined> => {
   // En mode local, retourner un utilisateur fictif
-  if (process.env.LOCAL_MODE === "true") {
+  if (
+    process.env.LOCAL_MODE === "true" ||
+    process.env.NEXT_PUBLIC_LOCAL_MODE === "true"
+  ) {
     return {
       id: "local-user",
       name: "Local User",

@@ -8,7 +8,10 @@ import { COLORS, getPTag } from "@/lib/utils";
 // import type user
 export async function GET() {
   // En mode local, retourner une liste vide de projets
-  if (process.env.LOCAL_MODE === "true") {
+  if (
+    process.env.LOCAL_MODE === "true" ||
+    process.env.NEXT_PUBLIC_LOCAL_MODE === "true"
+  ) {
     return NextResponse.json(
       {
         ok: true,
@@ -57,7 +60,10 @@ export async function GET() {
  */
 export async function POST(request: NextRequest) {
   // En mode local, empêcher la création de projets
-  if (process.env.LOCAL_MODE === "true") {
+  if (
+    process.env.LOCAL_MODE === "true" ||
+    process.env.NEXT_PUBLIC_LOCAL_MODE === "true"
+  ) {
     return NextResponse.json(
       { 
         ok: false,
