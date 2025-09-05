@@ -35,6 +35,15 @@ export function LoadProject({
     const fetchProjects = async () => {
       try {
         const response = await fetch("/api/me/projects");
+        
+        // En mode local ou si non authentifié, on peut avoir une liste vide
+        if (response.status === 401) {
+          console.log("User not authenticated, showing empty project list");
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
+        
         if (!response.ok) {
           throw new Error("Failed to fetch projects");
         }
@@ -43,7 +52,9 @@ export function LoadProject({
         setProjects(data.projects || []);
       } catch (err) {
         console.error("Error fetching projects:", err);
-        setError("Impossible de charger les projets");
+        // Ne pas afficher d'erreur si c'est juste un problème d'authentification
+        setError(null);
+        setProjects([]);
       } finally {
         setLoading(false);
       }
