@@ -1,7 +1,7 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { apiServer } from "@/lib/api";
+// Use fetch on the server to call internal API
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
 import { AppEditor } from "@/components/editor";
 
@@ -11,15 +11,15 @@ async function getProject(namespace: string, repoId: string) {
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return {};
   try {
-    const { data } = await apiServer.get(
-      `/me/projects/${namespace}/${repoId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
+    const h = headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const urlBase = `${host.includes("localhost") ? "http" : "https"}://${host}`;
+    const res = await fetch(`${urlBase}/api/me/projects/${namespace}/${repoId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return {} as any;
+    const data = await res.json();
     return data.project;
   } catch {
     return {};
