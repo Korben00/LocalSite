@@ -1,17 +1,8 @@
 "use client";
 
-// Configuration côté client
+// Configuration côté client (valeurs stables SSR/Client)
 export const isLocalMode = (): boolean => {
-  // Vérifier si on est en mode local via l'URL ou l'environnement
-  if (typeof window !== "undefined") {
-    // Si NEXT_PUBLIC_LOCAL_MODE est défini
-    if (process.env.NEXT_PUBLIC_LOCAL_MODE === "true") {
-      return true;
-    }
-    // Détection automatique basée sur l'URL
-    const hostname = window.location.hostname;
-    return hostname === "localhost" || hostname === "127.0.0.1";
-  }
+  // S'appuyer uniquement sur la variable publique pour garantir l'égalité SSR/Client
   return process.env.NEXT_PUBLIC_LOCAL_MODE === "true";
 };
 
@@ -31,11 +22,13 @@ export const getApiEndpoint = (endpoint: string): string => {
 };
 
 export const getDefaultProvider = (): string => {
-  // Utiliser Ollama en mode local
-  return isLocalMode() ? "ollama" : "auto";
+  // Stable côté serveur et client
+  return process.env.NEXT_PUBLIC_LOCAL_MODE === "true" ? "ollama" : "auto";
 };
 
 export const getDefaultModel = (): string => {
-  // Utiliser le modèle Ollama local au lieu du modèle cloud
-  return isLocalMode() ? "deepseek-r1:7b" : "deepseek-ai/DeepSeek-V3-0324";
+  // Stable côté serveur et client
+  return process.env.NEXT_PUBLIC_LOCAL_MODE === "true"
+    ? "deepseek-r1:7b"
+    : "deepseek-ai/DeepSeek-V3-0324";
 };
