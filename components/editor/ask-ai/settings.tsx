@@ -1,127 +1,213 @@
-"use client";
+import classNames from "classnames";
+import { PiGearSixFill } from "react-icons/pi";
+import { RiCheckboxCircleFill } from "react-icons/ri";
 
-import { useState } from "react";
-import { Settings as SettingsIcon, ChevronDown } from "lucide-react";
-import Image from "next/image";
-
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { PROVIDERS, MODELS } from "@/lib/providers";
+import { useOllamaModels } from "@/hooks/useOllamaModels";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { MODELS, PROVIDERS } from "@/lib/providers";
-
-interface SettingsProps {
-  provider: string;
-  model: string;
-  onChange: (provider: string) => void;
-  onModelChange: (model: string) => void;
-  open: boolean;
-  error: string;
-  isFollowUp: boolean;
-  onClose: () => void;
-}
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useMemo } from "react";
+import { useUpdateEffect } from "react-use";
+import Image from "next/image";
 
 export function Settings({
+  open,
+  onClose,
   provider,
   model,
+  error,
+  isFollowUp = false,
   onChange,
   onModelChange,
-  error,
-  onClose,
-}: SettingsProps) {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+}: {
+  open: boolean;
+  provider: string;
+  model: string;
+  error?: string;
+  isFollowUp?: boolean;
+  onClose: React.Dispatch<React.SetStateAction<boolean>>;
+  onChange: (provider: string) => void;
+  onModelChange: (model: string) => void;
+}) {
+  const { models: dynamicModels, loading: modelsLoading, error: modelsError, isLocalMode } = useOllamaModels();
+  const displayModels = dynamicModels.length > 0 ? dynamicModels : MODELS;
+  
+  const modelAvailableProviders = useMemo(() => {
+    const availableProviders = displayModels.find(
+      (m: { value: string }) => m.value === model
+    )?.providers;
+    if (!availableProviders) return Object.keys(PROVIDERS);
+    return Object.keys(PROVIDERS).filter((id) =>
+      availableProviders.includes(id)
+    );
+  }, [model, displayModels]);
 
-  const availableModels = MODELS.filter(modelItem => {
-    const isLocalMode = process.env.NEXT_PUBLIC_LOCAL_MODE === "true";
-    if (isLocalMode) {
-      return modelItem.providers.includes("openrouter") || modelItem.providers.includes("auto");
+  useUpdateEffect(() => {
+    if (provider !== "auto" && !modelAvailableProviders.includes(provider)) {
+      onChange("auto");
     }
-    return true;
-  });
-
-  const selectedModelObj = availableModels.find(m => m.value === model);
-  const availableProviders = selectedModelObj?.providers || [];
+  }, [model, provider]);
 
   return (
-    <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <SettingsIcon className="h-4 w-4 mr-2" />
-          {selectedModelObj?.label || model}
-          <ChevronDown className="h-4 w-4 ml-2" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-80">
-        <div className="p-2">
-          {error && (
-            <div className="text-red-500 text-xs mb-2 p-2 bg-red-50 rounded">
-              {error}
-            </div>
-          )}
-          
-          <div className="text-sm font-medium mb-2">Modèle</div>
-          <div className="space-y-1 max-h-64 overflow-y-auto">
-            {availableModels.map((modelItem) => (
-              <DropdownMenuItem
-                key={modelItem.value}
-                onClick={() => onModelChange(modelItem.value)}
-                className={model === modelItem.value ? "bg-accent" : ""}
-              >
-                <div>
-                  <div className="font-medium">{modelItem.label}</div>
-                  <div className="text-xs text-muted-foreground">
-                    Providers: {modelItem.providers.join(", ")}
+    <div className="">
+      <Popover open={open} onOpenChange={onClose}>
+        <PopoverTrigger asChild>
+          <Button variant="black" size="sm">
+            <PiGearSixFill className="size-4" />
+            Settings
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent
+          className="!rounded-2xl p-0 !w-96 overflow-hidden !bg-neutral-900"
+          align="center"
+        >
+          <header className="flex items-center justify-center text-sm px-4 py-3 border-b gap-2 bg-neutral-950 border-neutral-800 font-semibold text-neutral-200">
+            Customize Settings
+          </header>
+          <main className="px-4 pt-5 pb-6 space-y-5">
+            {error !== "" && (
+              <p className="text-red-500 text-sm font-medium mb-2 flex items-center justify-between bg-red-500/10 p-2 rounded-md">
+                {error}
+              </p>
+            )}
+            <label className="block">
+              <p className="text-neutral-300 text-sm mb-2.5">
+                Choose a model {isLocalMode && "(Local)"}
+              </p>
+              {modelsError && (
+                <p className="text-amber-500 text-xs mb-2">{modelsError}</p>
+              )}
+              <Select defaultValue={model} onValueChange={onModelChange}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={modelsLoading ? "Loading models..." : "Select a model"} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>{isLocalMode ? "Ollama Models" : "Models"}</SelectLabel>
+                    {displayModels.map(
+                      ({
+                        value,
+                        label,
+                        isNew = false,
+                        isThinker = false,
+                      }: {
+                        value: string;
+                        label: string;
+                        isNew?: boolean;
+                        isThinker?: boolean;
+                      }) => (
+                        <SelectItem
+                          key={value}
+                          value={value}
+                          className=""
+                          disabled={isThinker && isFollowUp}
+                        >
+                          {label}
+                          {isNew && (
+                            <span className="text-xs bg-gradient-to-br from-sky-400 to-sky-600 text-white rounded-full px-1.5 py-0.5">
+                              New
+                            </span>
+                          )}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+            </label>
+            {isFollowUp && !isLocalMode && (
+              <div className="bg-amber-500/10 border-amber-500/10 p-3 text-xs text-amber-500 border rounded-lg">
+                Note: You can&apos;t use a Thinker model for follow-up requests.
+                We automatically switch to the default model for you.
+              </div>
+            )}
+            {!isLocalMode && (
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-neutral-300 text-sm mb-1.5">
+                      Use auto-provider
+                    </p>
+                    <p className="text-xs text-neutral-400/70">
+                      We&apos;ll automatically select the best provider for you
+                      based on your prompt.
+                    </p>
+                  </div>
+                  <div
+                    className={classNames(
+                      "bg-neutral-700 rounded-full min-w-10 w-10 h-6 flex items-center justify-between p-1 cursor-pointer transition-all duration-200",
+                      {
+                        "!bg-sky-500": provider === "auto",
+                      }
+                    )}
+                    onClick={() => {
+                      const foundModel = MODELS.find(
+                        (m: { value: string }) => m.value === model
+                      );
+                      if (provider === "auto" && foundModel?.autoProvider) {
+                        onChange(foundModel.autoProvider);
+                      } else {
+                        onChange("auto");
+                      }
+                    }}
+                  >
+                    <div
+                      className={classNames(
+                        "w-4 h-4 rounded-full shadow-md transition-all duration-200 bg-neutral-200",
+                        {
+                          "translate-x-4": provider === "auto",
+                        }
+                      )}
+                    />
                   </div>
                 </div>
-              </DropdownMenuItem>
-            ))}
-          </div>
-          
-          {availableProviders.length > 1 && (
-            <>
-              <div className="text-sm font-medium mb-2 mt-4">Provider</div>
-              <div className="space-y-1">
-                {availableProviders.map((providerItem) => {
-                  const providerConfig = PROVIDERS[providerItem as keyof typeof PROVIDERS];
-                  return (
-                    <DropdownMenuItem
-                      key={providerItem}
-                      onClick={() => onChange(providerItem)}
-                      className={provider === providerItem ? "bg-accent" : ""}
-                    >
-                      <div className="flex items-center space-x-2">
-                        {providerConfig && 'logo' in providerConfig && (
-                          <Image
-                            src={providerConfig.logo as string}
-                            alt={providerItem}
-                            width={16}
-                            height={16}
-                          />
+                <label className="block">
+                  <p className="text-neutral-300 text-sm mb-2">
+                    Inference Provider
+                  </p>
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {modelAvailableProviders.map((id: string) => (
+                      <Button
+                        key={id}
+                        variant={id === provider ? "default" : "secondary"}
+                        size="sm"
+                        onClick={() => {
+                          onChange(id);
+                        }}
+                      >
+                        <Image
+                          src={`/providers/${id}.svg`}
+                          alt={PROVIDERS[id as keyof typeof PROVIDERS].name}
+                          className="size-5 mr-2"
+                          width={20}
+                          height={20}
+                        />
+                        {PROVIDERS[id as keyof typeof PROVIDERS].name}
+                        {id === provider && (
+                          <RiCheckboxCircleFill className="ml-2 size-4 text-blue-500" />
                         )}
-                        <span className="capitalize">{providerItem}</span>
-                      </div>
-                    </DropdownMenuItem>
-                  );
-                })}
+                      </Button>
+                    ))}
+                  </div>
+                </label>
               </div>
-            </>
-          )}
-          
-          <div className="mt-4 pt-2 border-t">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={onClose}
-              className="w-full"
-            >
-              Fermer
-            </Button>
-          </div>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+            )}
+          </main>
+        </PopoverContent>
+      </Popover>
+    </div>
   );
 }
