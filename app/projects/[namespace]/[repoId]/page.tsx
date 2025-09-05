@@ -1,9 +1,13 @@
 import { cookies, headers } from "next/headers";
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 
 // Use fetch on the server to call internal API
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
-import { AppEditor } from "@/components/editor";
+const ClientEditor = dynamic(
+  () => import("@/components/editor").then((m) => m.AppEditor),
+  { ssr: false }
+);
 
 async function getProject(namespace: string, repoId: string) {
   // TODO replace with a server action
@@ -36,5 +40,5 @@ export default async function ProjectNamespacePage({
   if (!project?.html) {
     redirect("/projects");
   }
-  return <AppEditor project={project} />;
+  return <ClientEditor project={project} />;
 }
