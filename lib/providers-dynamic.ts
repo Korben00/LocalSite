@@ -1,5 +1,14 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PROVIDERS, MODELS } from "./providers";
+
+interface ModelResponse {
+  models: Array<{
+    value: string;
+    label: string;
+    providers: string[];
+    autoProvider: string;
+    isLocal?: boolean;
+  }>;
+}
 
 export async function getDynamicModels() {
   const isLocalMode = process.env.NEXT_PUBLIC_LOCAL_MODE === "true";
@@ -12,7 +21,7 @@ export async function getDynamicModels() {
     // Récupérer les modèles Ollama disponibles
     const response = await fetch("/api/ollama-models");
     if (response.ok) {
-      const data = await response.json();
+      const data: ModelResponse = await response.json();
       
       // Combiner les modèles cloud et locaux
       const ollamaModels = data.models || [];

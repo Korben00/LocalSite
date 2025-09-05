@@ -28,7 +28,7 @@ export function Settings({
   onClose,
   provider,
   model,
-  error,
+  error = "",
   isFollowUp = false,
   onChange,
   onModelChange,
@@ -43,17 +43,29 @@ export function Settings({
   onModelChange: (model: string) => void;
 }) {
   const { models: dynamicModels, loading: modelsLoading, error: modelsError, isLocalMode } = useOllamaModels();
-  const displayModels = dynamicModels.length > 0 ? dynamicModels : MODELS;
+  // En mode local, n'afficher que les modèles locaux
+  const displayModels = isLocalMode 
+    ? (dynamicModels.length > 0 ? dynamicModels : MODELS.filter(m => m.isLocal))
+    : MODELS;
   
   const modelAvailableProviders = useMemo(() => {
     const availableProviders = displayModels.find(
       (m: { value: string }) => m.value === model
     )?.providers;
+    
+    // En mode local, ne montrer que les providers locaux (ollama, lm-studio)
+    const localProviders = ["ollama", "lm-studio"];
+    
+    if (isLocalMode) {
+      if (!availableProviders) return localProviders;
+      return localProviders.filter((id) => availableProviders.includes(id));
+    }
+    
     if (!availableProviders) return Object.keys(PROVIDERS);
     return Object.keys(PROVIDERS).filter((id) =>
       availableProviders.includes(id)
     );
-  }, [model, displayModels]);
+  }, [model, displayModels, isLocalMode]);
 
   useUpdateEffect(() => {
     if (provider !== "auto" && !modelAvailableProviders.includes(provider)) {
@@ -65,7 +77,11 @@ export function Settings({
     <div className="">
       <Popover open={open} onOpenChange={onClose}>
         <PopoverTrigger asChild>
-          <Button variant="black" size="sm">
+          <Button 
+            variant="black" 
+            size="sm"
+            onClick={() => onClose(!open)}
+          >
             <PiGearSixFill className="size-4" />
             Settings
           </Button>
@@ -134,7 +150,42 @@ export function Settings({
                 We automatically switch to the default model for you.
               </div>
             )}
-            {!isLocalMode && (
+            {/* En mode local, afficher seulement les providers locaux */}
+            {isLocalMode ? (
+              <label className="block">
+                <p className="text-neutral-300 text-sm mb-2">
+                  Local Inference Provider
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {modelAvailableProviders.map((id: string) => (
+                    <Button
+                      key={id}
+                      variant={id === provider ? "default" : "secondary"}
+                      size="sm"
+                      onClick={() => {
+                        onChange(id);
+                      }}
+                    >
+                      {PROVIDERS[id as keyof typeof PROVIDERS] && (
+                        <>
+                          <Image
+                            src={`/providers/${id}.svg`}
+                            alt={PROVIDERS[id as keyof typeof PROVIDERS].name}
+                            className="size-5 mr-2"
+                            width={20}
+                            height={20}
+                          />
+                          {PROVIDERS[id as keyof typeof PROVIDERS].name}
+                        </>
+                      )}
+                      {id === provider && (
+                        <RiCheckboxCircleFill className="ml-2 size-4 text-blue-500" />
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </label>
+            ) : (
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
                   <div>

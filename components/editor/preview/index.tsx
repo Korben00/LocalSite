@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { GridPattern } from "@/components/magic-ui/grid-pattern";
 import { htmlTagToText } from "@/lib/html-tag-to-text";
+import { sanitizeHtml } from "@/lib/sanitize-html";
 
 export const Preview = ({
   html,
@@ -43,8 +44,18 @@ export const Preview = ({
           hoveredElement !== targetElement &&
           targetElement !== iframeDocument.body
         ) {
+          // Remove hovered class from previous element
+          if (hoveredElement) {
+            hoveredElement.classList.remove("hovered-element");
+          }
           setHoveredElement(targetElement);
-          targetElement.classList.add("hovered-element");
+          // Safely add the hovered class
+          try {
+            targetElement.classList.add("hovered-element");
+          } catch (e) {
+            // Ignore classList errors for malformed class names
+            console.warn("Could not add hovered-element class:", e);
+          }
         } else {
           return setHoveredElement(null);
         }
@@ -52,6 +63,15 @@ export const Preview = ({
     }
   };
   const handleMouseOut = () => {
+    // Remove hovered class from current element when mouse leaves
+    if (hoveredElement) {
+      try {
+        hoveredElement.classList.remove("hovered-element");
+      } catch (e) {
+        // Ignore classList errors for malformed class names
+        console.warn("Could not remove hovered-element class:", e);
+      }
+    }
     setHoveredElement(null);
   };
   const handleClick = (event: MouseEvent) => {
@@ -73,6 +93,15 @@ export const Preview = ({
         iframeDocument.removeEventListener("mouseover", handleMouseOver);
         iframeDocument.removeEventListener("mouseout", handleMouseOut);
         iframeDocument.removeEventListener("click", handleClick);
+        
+        // Clean up any remaining hovered classes
+        if (hoveredElement) {
+          try {
+            hoveredElement.classList.remove("hovered-element");
+          } catch (e) {
+            // Ignore classList errors
+          }
+        }
       }
     };
 
@@ -99,6 +128,10 @@ export const Preview = ({
     if (!hoveredElement) return null;
     return hoveredElement;
   }, [hoveredElement, isEditableModeEnabled]);
+
+  const sanitizedHtml = useMemo(() => {
+    return sanitizeHtml(html);
+  }, [html]);
 
   return (
     <div
@@ -160,7 +193,7 @@ export const Preview = ({
               currentTab !== "preview" && device === "desktop",
           }
         )}
-        srcDoc={html}
+        srcDoc={sanitizedHtml}
         onLoad={() => {
           if (iframeRef?.current?.contentWindow?.document?.body) {
             iframeRef.current.contentWindow.document.body.scrollIntoView({

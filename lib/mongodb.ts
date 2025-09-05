@@ -10,13 +10,18 @@ if (!cached) {
 }
 
 async function dbConnect() {
+  if (!MONGODB_URI) {
+    throw new Error(
+      "MONGODB_URI is not defined. Please set it in the environment to use database features."
+    );
+  }
   if (cached.conn) {
     return cached.conn;
   }
 
   if (!cached.promise) {
     cached.promise = mongoose
-      .connect(MONGODB_URI as string)
+      .connect(MONGODB_URI)
       .then((mongoose) => {
         return mongoose;
       });

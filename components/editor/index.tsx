@@ -29,20 +29,19 @@ import { DownloadButton } from "./download-button";
 import { isTheSameHtml } from "@/lib/compare-html-diff";
 
 export const AppEditor = ({ project }: { project?: Project | null }) => {
-  const [htmlStorage, , removeHtmlStorage] = useLocalStorage("html_content");
   const [, copyToClipboard] = useCopyToClipboard();
   const { html, setHtml, htmlHistory, setHtmlHistory, prompts, setPrompts } =
-    useEditor(project?.html ?? (htmlStorage as string) ?? defaultHTML);
+    useEditor(project?.html ?? defaultHTML);
   // get query params from URL
   const searchParams = useSearchParams();
   const router = useRouter();
   const deploy = searchParams.get("deploy") === "true";
 
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
-  const preview = useRef<HTMLDivElement>(null);
-  const editor = useRef<HTMLDivElement>(null);
+  const preview = useRef<HTMLDivElement | null>(null);
+  const editor = useRef<HTMLDivElement | null>(null);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
-  const resizer = useRef<HTMLDivElement>(null);
+  const resizer = useRef<HTMLDivElement | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const monacoRef = useRef<any>(null);
 
@@ -129,10 +128,14 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
       });
       router.replace(`/projects/${project?.space_id}`);
     }
-    if (htmlStorage) {
-      removeHtmlStorage();
-      toast.warning("Previous HTML content restored from local storage.");
-    }
+    try {
+      const stored = localStorage.getItem("html_content");
+      if (stored) {
+        setHtml(stored);
+        localStorage.removeItem("html_content");
+        toast.warning("Previous HTML content restored from local storage.");
+      }
+    } catch {}
 
     resetLayout();
     if (!resizer.current) return;
@@ -180,9 +183,10 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
     <section className="h-[100dvh] bg-neutral-950 flex flex-col">
       <Header tab={currentTab} onNewTab={setCurrentTab}>
         <LoadProject
-          onSuccess={(project: Project) => {
+          onLoad={(project) => {
             setHtml(project.html);
-            toast.success(`Project "${project.title}" loaded successfully!`);
+            setPrompts(project.prompts);
+            toast.success(`Project "${project.space_id}" loaded successfully!`);
           }}
         />
         <DownloadButton html={html} />
@@ -328,7 +332,7 @@ export const AppEditor = ({ project }: { project?: Project | null }) => {
             window.confirm("You're about to reset the editor. Are you sure?")
           ) {
             setHtml(defaultHTML);
-            removeHtmlStorage();
+            try { localStorage.removeItem("html_content"); } catch {}
             editorRef.current?.revealLine(
               editorRef.current?.getModel()?.getLineCount() ?? 0
             );

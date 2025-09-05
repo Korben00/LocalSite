@@ -1,9 +1,13 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
+import dynamic from "next/dynamic";
 import { redirect } from "next/navigation";
 
-import { apiServer } from "@/lib/api";
+// Use fetch on the server to call internal API
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
-import { AppEditor } from "@/components/editor";
+const ClientEditor = dynamic(
+  () => import("@/components/editor").then((m) => m.AppEditor),
+  { ssr: false }
+);
 
 async function getProject(namespace: string, repoId: string) {
   // TODO replace with a server action
@@ -11,15 +15,15 @@ async function getProject(namespace: string, repoId: string) {
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return {};
   try {
-    const { data } = await apiServer.get(
-      `/me/projects/${namespace}/${repoId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
+    const h = await headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const urlBase = `${host.includes("localhost") ? "http" : "https"}://${host}`;
+    const res = await fetch(`${urlBase}/api/me/projects/${namespace}/${repoId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    if (!res.ok) return {} as any;
+    const data = await res.json();
     return data.project;
   } catch {
     return {};
@@ -29,12 +33,12 @@ async function getProject(namespace: string, repoId: string) {
 export default async function ProjectNamespacePage({
   params,
 }: {
-  params: Promise<{ namespace: string; repoId: string }>;
+  params: { namespace: string; repoId: string };
 }) {
-  const { namespace, repoId } = await params;
+  const { namespace, repoId } = params;
   const project = await getProject(namespace, repoId);
   if (!project?.html) {
     redirect("/projects");
   }
-  return <AppEditor project={project} />;
+  return <ClientEditor project={project} />;
 }

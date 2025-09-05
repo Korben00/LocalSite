@@ -7,12 +7,14 @@ export async function GET() {
     const response = await fetch(`${baseUrl}/api/tags`);
     
     if (!response.ok) {
-      throw new Error("Failed to fetch Ollama models");
+      // Si Ollama n'est pas disponible, retourner une liste vide
+      return NextResponse.json({ models: [] });
     }
     
     const data = await response.json();
     
     // Transformer les modèles Ollama au format attendu par l'application
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const models = data.models?.map((model: any) => ({
       value: model.name,
       label: `${model.name} (${formatSize(model.size)})`,
@@ -24,12 +26,11 @@ export async function GET() {
     })) || [];
     
     return NextResponse.json({ models });
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error("Error fetching Ollama models:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch Ollama models", models: [] },
-      { status: 500 }
-    );
+    // En cas d'erreur, retourner une liste vide plutôt qu'une erreur 500
+    return NextResponse.json({ models: [] });
   }
 }
 

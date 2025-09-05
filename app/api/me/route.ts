@@ -3,7 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   // En mode local, retourner un utilisateur fictif
-  if (process.env.LOCAL_MODE === "true") {
+  if (
+    process.env.LOCAL_MODE === "true" ||
+    process.env.NEXT_PUBLIC_LOCAL_MODE === "true"
+  ) {
     return NextResponse.json(
       {
         user: {

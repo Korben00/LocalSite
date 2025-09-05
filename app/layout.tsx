@@ -1,15 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import type { Metadata, Viewport } from "next";
 import { Inter, PT_Sans } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import TanstackProvider from "@/components/providers/tanstack-query-provider";
 import "@/assets/globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import MY_TOKEN_KEY from "@/lib/get-cookie-name";
-import { apiServer } from "@/lib/api";
+// Use fetch on the server to call internal API
 import AppContext from "@/components/contexts/app-context";
-import Script from "next/script";
+
 
 const inter = Inter({
   variable: "--font-inter-sans",
@@ -23,6 +23,7 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
   title: "LocalSite | Build locally with AI ✨",
   description:
     "LocalSite is a 100% local web development tool powered by Ollama. Build websites with AI running directly on your machine, no cloud required.",
@@ -71,12 +72,18 @@ async function getMe() {
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return { user: null, errCode: null };
   try {
-    const res = await apiServer.get("/me", {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    const h = await headers();
+    const host = h.get("host") ?? "localhost:3000";
+    const urlBase = `${host.includes("localhost") ? "http" : "https"}://${host}`;
+    const res = await fetch(`${urlBase}/api/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
-    return { user: res.data.user, errCode: null };
+    if (!res.ok) {
+      return { user: null, errCode: res.status };
+    }
+    const data = await res.json();
+    return { user: data.user, errCode: null };
   } catch (err: any) {
     return { user: null, errCode: err.status };
   }
