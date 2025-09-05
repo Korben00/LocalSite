@@ -23,6 +23,7 @@ const ptSans = PT_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
   title: "LocalSite | Build locally with AI ✨",
   description:
     "LocalSite is a 100% local web development tool powered by Ollama. Build websites with AI running directly on your machine, no cloud required.",
