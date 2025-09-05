@@ -45,7 +45,7 @@ async function callOllama(messages: any[], model: string, stream = true) {
 }
 
 export async function POST(request: NextRequest) {
-  const authHeaders = headers();
+  const authHeaders = await headers();
   const body = await request.json();
   const { prompt, provider, model, redesignMarkdown, html } = body;
 
@@ -183,7 +183,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const authHeaders = headers();
+  const authHeaders = await headers();
   const body = await request.json();
   const { prompt, html, previousPrompt, provider, selectedElementHtml, model } =
     body;

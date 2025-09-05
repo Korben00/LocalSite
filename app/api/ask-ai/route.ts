@@ -18,7 +18,7 @@ import MY_TOKEN_KEY from "@/lib/get-cookie-name";
 const ipAddresses = new Map();
 
 export async function POST(request: NextRequest) {
-  const authHeaders = headers();
+  const authHeaders = await headers();
   const userToken = request.cookies.get(MY_TOKEN_KEY())?.value;
 
   const body = await request.json();
@@ -220,7 +220,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const authHeaders = headers();
+  const authHeaders = await headers();
   const userToken = request.cookies.get(MY_TOKEN_KEY())?.value;
 
   const body = await request.json();

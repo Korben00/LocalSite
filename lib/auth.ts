@@ -24,8 +24,8 @@ Promise<UserResponse | NextResponse<unknown> | undefined> => {
     } as UserResponse;
   }
 
-  const authHeaders = headers();
-  const cookieStore = cookies();
+  const authHeaders = await headers();
+  const cookieStore = await cookies();
   const token = cookieStore.get(MY_TOKEN_KEY())?.value
     ? `Bearer ${cookieStore.get(MY_TOKEN_KEY())?.value}`
     : authHeaders.get("Authorization");

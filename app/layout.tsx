@@ -67,11 +67,11 @@ export const viewport: Viewport = {
 };
 
 async function getMe() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const token = cookieStore.get(MY_TOKEN_KEY())?.value;
   if (!token) return { user: null, errCode: null };
   try {
-    const h = headers();
+    const h = await headers();
     const host = h.get("host") ?? "localhost:3000";
     const urlBase = `${host.includes("localhost") ? "http" : "https"}://${host}`;
     const res = await fetch(`${urlBase}/api/me`, {
